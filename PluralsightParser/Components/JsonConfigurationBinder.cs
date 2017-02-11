@@ -11,13 +11,20 @@ namespace PluralsightParser.Components
         {
             var filePath = GetFilePath<T>();
 
+            if (!File.Exists(filePath))
+            {
+                return default(T);
+            }
+
             var file = File.ReadAllText(filePath);
 
             return JsonConvert.DeserializeObject<T>(file);
         }
 
-        private string GetFilePath(Type type)
+        private string GetFilePath<T>()
         {
+            var type = typeof (T);
+
             var attr = type.GetCustomAttribute<Configuration>();
 
             if (!string.IsNullOrWhiteSpace(attr.FilePath))
@@ -28,11 +35,6 @@ namespace PluralsightParser.Components
             var name = type.Name.Replace("Configuration", string.Empty);
 
             return $"{name}.json";
-        }
-
-        private string GetFilePath<T>()
-        {
-            return GetFilePath(typeof (T));
         }
     }
 
