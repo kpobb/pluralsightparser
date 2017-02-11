@@ -68,10 +68,15 @@ namespace PluralsightParser
                 }
             }
 
-            using (var response = (HttpWebResponse)request.GetResponse())
+            using (var response = request.GetResponse())
             {
                 using (var stream = response.GetResponseStream())
                 {
+                    if (stream == null)
+                    {
+                        return null;
+                    }
+
                     using (var reader = new StreamReader(stream))
                     {
                         return reader.ReadToEnd();

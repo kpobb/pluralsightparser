@@ -7,6 +7,15 @@ namespace PluralsightParser.Components
 {
     class JsonConfigurationReader
     {
+        public T Read<T>()
+        {
+            var filePath = GetFilePath<T>();
+
+            var file = File.ReadAllText(filePath);
+
+            return JsonConvert.DeserializeObject<T>(file);
+        }
+
         public T Read<T>(string path)
         {
             var file = File.ReadAllText(path);
@@ -31,18 +40,7 @@ namespace PluralsightParser.Components
 
                 if (attr != null)
                 {
-                    string filePath;
-
-                    if (!string.IsNullOrWhiteSpace(attr.FilePath))
-                    {
-                        filePath = $"{attr.FilePath}.json";
-                    }
-                    else
-                    {
-                        var name = type.Name.Replace("Configuration", string.Empty);
-
-                        filePath = $"{name}.json";
-                    }
+                    var filePath = GetFilePath(type);
 
                     if (File.Exists(filePath))
                     {
@@ -60,6 +58,25 @@ namespace PluralsightParser.Components
                     }
                 }
             }
+        }
+
+        private string GetFilePath(Type type)
+        {
+            var attr = type.GetCustomAttribute<Configuration>();
+
+            if (!string.IsNullOrWhiteSpace(attr.FilePath))
+            {
+                return $"{attr.FilePath}.json";
+            }
+
+            var name = type.Name.Replace("Configuration", string.Empty);
+
+            return $"{name}.json";
+        }
+
+        private string GetFilePath<T>()
+        {
+            return GetFilePath(typeof (T));
         }
     }
 

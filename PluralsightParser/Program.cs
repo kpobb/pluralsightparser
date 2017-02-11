@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using PluralsightParser.Components;
 using PluralsightParser.Configuration;
-using PluralsightParser.Dto;
 using PluralsightParser.Extensions;
 
 namespace PluralsightParser
@@ -18,16 +16,11 @@ namespace PluralsightParser
         {
             var json = new JsonConfigurationReader();
 
-            _config =  json.Read<PluralsightConfiguration>("config.json");
+            _config = json.Read<PluralsightConfiguration>();
 
             Login(_config.Login, _config.Password);
 
-            var videos = ParseCource("angular-2-first-look");
-
-            foreach (var video in videos)
-            {
-                Download(@"D:\\test", video);
-            }
+            DownloadCourse("angular-2-first-look");
         }
 
         private static void Login(string username, string password)
@@ -39,45 +32,51 @@ namespace PluralsightParser
             });
         }
 
-        private static IEnumerable<Video> ParseCource(string courseId)
+        private static void DownloadCourse(string courseId)
         {
             var payload = Executor.ExecutePost(_config.PayloadUrl, new { courseId = courseId });
 
-            var modules = JObject.Parse(payload)["modules"].ToObject<List<Module>>();
+            var modules = JObject.Parse(payload)["modules"].Children();
 
-            foreach (var video in modules.SelectMany(s => s.Clips))
+            foreach (var module in modules)
             {
-                var args = video.Id.Split(':');
+                foreach (var clip in module["clips"])
+                {
+                    var args = clip["id"].ToString().Split(':');
 
-                var viewClip = Executor.ExecutePost(_config.ViewClipUrl,
-                    new
-                    {
-                        author = args[3],
-                        clipIndex = int.Parse(args[2]),
-                        courseName = args[0],
-                        includeCaptions = false,
-                        locale = "en",
-                        mediaType = "mp4",
-                        moduleName = args[1],
-                        quality = "1280x720",
-                    });
+                    var viewClip = Executor.ExecutePost(_config.ViewClipUrl,
+                        new
+                        {
+                            author = args[3],
+                            clipIndex = int.Parse(args[2]),
+                            courseName = args[0],
+                            includeCaptions = false,
+                            locale = "en",
+                            mediaType = "mp4",
+                            moduleName = args[1],
+                            quality = "1280x720",
+                        });
 
-                var url = JObject.Parse(viewClip)["urls"][0]["url"].ToObject<string>();
+                    var url = JObject.Parse(viewClip)["urls"][0]["url"].ToObject<string>();
 
-                yield return new Video(video.ModuleTitle.CleanInvalidCharacters(), ++video.ModuleIndex, video.Title.CleanInvalidCharacters() + ".mp4", url);
+                    int moduleIndex;
+                    int.TryParse(clip["moduleIndex"].ToString(), out moduleIndex);
+
+                    DownloadClip(url, ++moduleIndex, module["title"].ToString(), clip["title"].ToString().CleanInvalidCharacters() + ".mp4");
+                }
             }
         }
 
-        private static void Download(string localPath, Video video)
+        private static void DownloadClip(string url, int index, string folderName, string fileName)
         {
-            var directoryPath = Path.Combine(localPath, string.Format("{0}. {1}", video.FolderIndex, video.FolderName));
+            var directoryPath = Path.Combine(_config.DownloadLocation, $"{index}. {folderName}");
 
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
 
-            var filePath = Path.Combine(directoryPath, video.FileName);
+            var filePath = Path.Combine(directoryPath, fileName);
 
             if (File.Exists(filePath))
             {
@@ -86,7 +85,7 @@ namespace PluralsightParser
 
             using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
             {
-                var request = (HttpWebRequest)WebRequest.Create(video.Url);
+                var request = (HttpWebRequest)WebRequest.Create(url);
 
                 using (var response = request.GetResponse())
                 {
