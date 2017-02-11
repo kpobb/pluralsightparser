@@ -46,6 +46,14 @@ namespace PluralsightParser
             Console.WriteLine("Authenticating...\n");
             Login(_config.Login, _config.Password);
 
+            if (!Executor.HasCookies)
+            {
+                Console.WriteLine("Error: Login or password is incorrect.\n");
+                Console.ReadKey();
+
+                return;
+            }
+
             string courseUrl = null;
 
             while (string.IsNullOrWhiteSpace(courseUrl))
