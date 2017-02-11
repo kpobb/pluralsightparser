@@ -9,12 +9,17 @@
             FileName = fileName;
             Url = url;
         }
-        public int FolderIndex { get; private set; }
 
-        public string FolderName { get; private set; }
+        public Video()
+        {
+        }
 
-        public string FileName { get; private set; }
+        public int FolderIndex { get; set; }
 
-        public string Url { get; private set; }
+        public string FolderName { get; set; }
+
+        public string FileName { get; set; }
+
+        public string Url { get; set; }
     }
 }

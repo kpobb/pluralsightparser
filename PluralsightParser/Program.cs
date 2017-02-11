@@ -1,22 +1,28 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using Newtonsoft.Json.Linq;
+using PluralsightParser.Components;
+using PluralsightParser.Configuration;
 using PluralsightParser.Dto;
 using PluralsightParser.Extensions;
-using System.Net;
 
 namespace PluralsightParser
 {
     class Program
     {
         private static readonly HttpRequestExecutor Executor = new HttpRequestExecutor();
-
+        private static PluralsightConfiguration _config;
         static void Main()
         {
-            Login("alex-alexc8", "sxds917K");
+            var json = new JsonConfigurationReader();
 
-            var videos = GetCourse("angular-2-first-look");
+            _config =  json.Read<PluralsightConfiguration>("config.json");
+
+            Login(_config.Login, _config.Password);
+
+            var videos = ParseCource("angular-2-first-look");
 
             foreach (var video in videos)
             {
@@ -26,16 +32,16 @@ namespace PluralsightParser
 
         private static void Login(string username, string password)
         {
-            Executor.ExecutePost("https://app.pluralsight.com/id/", new Dictionary<string, string>()
+            Executor.ExecutePost(_config.LoginUrl, new Dictionary<string, string>()
             {
                 {"Username", username},
                 {"Password", password},
             });
         }
 
-        private static IEnumerable<Video> GetCourse(string courseId)
+        private static IEnumerable<Video> ParseCource(string courseId)
         {
-            var payload = Executor.ExecutePost("https://app.pluralsight.com/player/user/api/v1/player/payload", new { courseId = courseId });
+            var payload = Executor.ExecutePost(_config.PayloadUrl, new { courseId = courseId });
 
             var modules = JObject.Parse(payload)["modules"].ToObject<List<Module>>();
 
@@ -43,7 +49,7 @@ namespace PluralsightParser
             {
                 var args = video.Id.Split(':');
 
-                var viewClip = Executor.ExecutePost("https://app.pluralsight.com/video/clips/viewclip",
+                var viewClip = Executor.ExecutePost(_config.ViewClipUrl,
                     new
                     {
                         author = args[3],
