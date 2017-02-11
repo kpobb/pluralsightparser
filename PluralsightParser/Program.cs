@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Newtonsoft.Json.Linq;
 using PluralsightParser.Components;
@@ -51,7 +50,8 @@ namespace PluralsightParser
 
             DownloadCourse(courseData);
 
-            Console.WriteLine("Completed.\n");
+            Console.WriteLine("\nCompleted.\n");
+            Console.ReadKey();
         }
 
         private static void Login(string username, string password)

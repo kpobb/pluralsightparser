@@ -7,7 +7,7 @@ using System.Text;
 using System.Web;
 using Newtonsoft.Json;
 
-namespace PluralsightParser
+namespace PluralsightParser.Components
 {
     public class HttpRequestExecutor
     {
