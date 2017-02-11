@@ -91,7 +91,7 @@ namespace PluralsightParser
                     int moduleIndex;
                     int.TryParse(clip["moduleIndex"].ToString(), out moduleIndex);
 
-                    DownloadClip(url, ++moduleIndex, module["title"].GetValidString(), clip["title"].GetValidString() + ".mp4");
+                    DownloadClip(url, clip["title"].GetValidString() + ".mp4", ++moduleIndex, module["title"].GetValidString());
 
                     // Just to avoid too many requests issue
                     Thread.Sleep(1000);
@@ -99,16 +99,16 @@ namespace PluralsightParser
             }
         }
 
-        private static void DownloadClip(string url, int index, string folderName, string fileName)
+        private static void DownloadClip(string clipUrl, string clipName, int moduleIndex, string moduleFolderName)
         {
-            var directoryPath = Path.Combine(_config.DownloadLocation, $"{index}. {folderName}");
+            var directoryPath = Path.Combine(_config.DownloadLocation, $"{moduleIndex}. {moduleFolderName}");
 
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
 
-            var filePath = Path.Combine(directoryPath, fileName);
+            var filePath = Path.Combine(directoryPath, clipName);
 
             if (File.Exists(filePath))
             {
@@ -119,7 +119,7 @@ namespace PluralsightParser
 
             using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
             {
-                var request = (HttpWebRequest)WebRequest.Create(url);
+                var request = (HttpWebRequest)WebRequest.Create(clipUrl);
 
                 using (var response = request.GetResponse())
                 {

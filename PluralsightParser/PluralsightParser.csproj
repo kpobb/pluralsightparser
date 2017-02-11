@@ -50,7 +50,7 @@
     <Compile Include="Components\JsonConfigurationBinder.cs" />
     <Compile Include="Configuration\PluralsightConfiguration.cs" />
     <Compile Include="Extensions\JTokenExensions.cs" />
-    <Compile Include="HttpRequestExecutor.cs" />
+    <Compile Include="Components\HttpRequestExecutor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
