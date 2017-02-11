@@ -1,10 +1,7 @@
-PluralsightParser/packages.config
-packages/
-PluralsghtParser/obj
-obj/*
-PluralsightParser/obj
-PluralsightParser/bin
-PluralsightParser/.vs
-.vs/*
 AssemblyInfo.cs
+packages.config
+packages/*
+obj/*
+bin/*
+.vs/*
 *.suo
