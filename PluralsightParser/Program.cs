@@ -17,11 +17,31 @@ namespace PluralsightParser
         private static PluralsightConfiguration _config;
         static void Main()
         {
+            Console.WriteLine("Pluralsight parser - created by -=Tj=-\n");
+
             var json = new JsonConfigurationBinder();
 
             _config = json.Bind<PluralsightConfiguration>();
 
-            Console.WriteLine("Pluralsight parser - created by -=Tj=-\n");
+            Console.WriteLine("Checking the configuration...\n");
+
+            if (_config == null)
+            {
+                Console.WriteLine("Please configurate the application.");
+                Console.ReadKey();
+
+                return;
+            }
+
+            PluralsightConfiguration.ValidationResult result;
+
+            if (!_config.IsValid(out result))
+            {
+                Console.WriteLine($"The {string.Join(", ", result.Fields)} field(s) is not configured properly.");
+                Console.ReadKey();
+
+                return;
+            }
 
             Console.WriteLine("Authenticating...\n");
             Login(_config.Login, _config.Password);
