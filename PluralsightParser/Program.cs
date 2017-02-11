@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Threading;
 using Newtonsoft.Json.Linq;
 using PluralsightParser.Components;
 using PluralsightParser.Configuration;
@@ -20,7 +21,7 @@ namespace PluralsightParser
 
             Login(_config.Login, _config.Password);
 
-            DownloadCourse("angular-2-first-look");
+            DownloadCourse("csharp-6-from-scratch");
         }
 
         private static void Login(string username, string password)
@@ -63,6 +64,9 @@ namespace PluralsightParser
                     int.TryParse(clip["moduleIndex"].ToString(), out moduleIndex);
 
                     DownloadClip(url, ++moduleIndex, module["title"].ToString(), clip["title"].ToString().CleanInvalidCharacters() + ".mp4");
+
+                    // Just to avoid too many requests issue
+                    Thread.Sleep(1000);
                 }
             }
         }
@@ -91,7 +95,7 @@ namespace PluralsightParser
                 {
                     using (var stream = response.GetResponseStream())
                     {
-                        stream.CopyTo(fileStream);
+                        stream?.CopyTo(fileStream);
                     }
                 }
             }

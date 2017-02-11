@@ -57,15 +57,23 @@ namespace PluralsightParser
             request.Method = method.ToString();
             request.ContentType = contentType;
 
-            if (method == HttpMethod.POST)
+            switch (method)
             {
-                request.ContentLength = data.Length;
+                case HttpMethod.POST:
+                    {
+                        if (data != null)
+                        {
+                            request.ContentLength = data.Length;
 
-                using (var postStream = request.GetRequestStream())
-                {
-                    postStream.Write(data, 0, data.Length);
-                    postStream.Flush();
-                }
+                            using (var postStream = request.GetRequestStream())
+                            {
+                                postStream.Write(data, 0, data.Length);
+                                postStream.Flush();
+                            }
+                        }
+
+                        break;
+                    }
             }
 
             using (var response = request.GetResponse())
