@@ -42,7 +42,7 @@ namespace PluralsightParser
             }
 
             Console.WriteLine("Authenticating...\n");
-            Login(_config.Login, _config.Password);
+            PluralsightAuthentication();
 
             if (!Executor.HasCookies)
             {
@@ -62,7 +62,16 @@ namespace PluralsightParser
 
             var courseId = ExtractCourseId(courseUrl);
 
-            var courseData = Executor.ExecutePost(_config.PayloadUrl, new { courseId = courseId });
+            string courseData = null;
+
+            try
+            {
+                courseData = Executor.ExecutePost(_config.PayloadUrl, new { courseId = courseId });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occured while getting payload data. Message: {ex.Message}");
+            }
 
             if (string.IsNullOrWhiteSpace(courseData))
             {
@@ -74,18 +83,26 @@ namespace PluralsightParser
 
             Console.WriteLine("\nDownloading...\n");
 
-            DownloadCourse(courseData);
+            try
+            {
+                DownloadCourse(courseData);
 
-            Console.WriteLine("\nDownload has been completed.\n");
+                Console.WriteLine("\nDownload has been completed.\n");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occured while parsing the module. Message: {ex.Message}");
+            }
+
             Console.ReadKey();
         }
 
-        private static void Login(string username, string password)
+        private static void PluralsightAuthentication()
         {
-            Executor.ExecutePost(_config.LoginUrl, new Dictionary<string, string>
+            Executor.ExecutePost(_config.LoginUrl, new
             {
-                {"Username", username},
-                {"Password", password},
+                Username = _config.Login,
+                Password = _config.Password
             });
         }
 
@@ -99,7 +116,12 @@ namespace PluralsightParser
                 {
                     var args = clip["id"].ToString().Split(':');
 
-                    var viewClip = Executor.ExecutePost(_config.ViewClipUrl,
+                    string url = null;
+                    var moduleIndex = 0;
+
+                    try
+                    {
+                        var viewClip = Executor.ExecutePost(_config.ViewClipUrl,
                         new
                         {
                             author = args[3],
@@ -112,15 +134,26 @@ namespace PluralsightParser
                             quality = "1280x720",
                         });
 
-                    var url = JObject.Parse(viewClip)["urls"][0]["url"].ToObject<string>();
+                        url = JObject.Parse(viewClip)["urls"][0]["url"].ToObject<string>();
 
-                    int moduleIndex;
-                    int.TryParse(clip["moduleIndex"].ToString(), out moduleIndex);
+                        int.TryParse(clip["moduleIndex"].ToString(), out moduleIndex);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error occured while getting ViewClip data. Message: {ex.Message}");
+                    }
 
-                    DownloadClip(url, clip["title"].GetValidString() + ".mp4", ++moduleIndex, module["title"].GetValidString());
+                    try
+                    {
+                        DownloadClip(url, clip["title"].GetValidString() + ".mp4", ++moduleIndex, module["title"].GetValidString());
 
-                    // Just to avoid too many requests issue
-                    Thread.Sleep(1000);
+                        // Just to avoid too many requests issue
+                        Thread.Sleep(1000);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error occured while downloading the clip. Message: {ex.Message}");
+                    }
                 }
             }
         }
