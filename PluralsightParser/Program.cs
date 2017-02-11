@@ -19,9 +19,7 @@ namespace PluralsightParser
         {
             Console.WriteLine("Pluralsight parser - created by -=Tj=-\n");
 
-            var json = new JsonConfigurationBinder();
-
-            _config = json.Bind<PluralsightConfiguration>();
+            _config = new JsonConfigurationBinder().Bind<PluralsightConfiguration>();
 
             Console.WriteLine("Checking the configuration...\n");
 

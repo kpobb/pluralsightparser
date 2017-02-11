@@ -19,7 +19,7 @@ namespace PluralsightParser.Components
 
         private readonly CookieContainer _cookies = new CookieContainer();
 
-        public bool HasCookies { get { return _cookies.Count > 0; } }
+        public bool HasCookies => _cookies.Count > 0;
 
         public string ExecuteGet(string url)
         {
