@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Newtonsoft.Json.Linq;
 using PluralsightParser.Components;
@@ -15,29 +18,54 @@ namespace PluralsightParser
         private static PluralsightConfiguration _config;
         static void Main()
         {
-            var json = new JsonConfigurationReader();
+            var json = new JsonConfigurationBinder();
 
-            _config = json.Read<PluralsightConfiguration>();
+            _config = json.Bind<PluralsightConfiguration>();
 
+            Console.WriteLine("Pluralsight parser - created by -=Tj=-\n");
+
+            Console.WriteLine("Authenticating...\n");
             Login(_config.Login, _config.Password);
 
-            DownloadCourse("csharp-6-from-scratch");
+            string courseUrl = null;
+
+            while (string.IsNullOrWhiteSpace(courseUrl))
+            {
+                Console.Write("Enter course url: ");
+                courseUrl = Console.ReadLine();
+            }
+
+            var courseId = ExtractCourseId(courseUrl);
+
+            var courseData = Executor.ExecutePost(_config.PayloadUrl, new { courseId = courseId });
+
+            if (string.IsNullOrWhiteSpace(courseData))
+            {
+                Console.WriteLine($"{courseUrl} was not found on the server.");
+                Console.ReadKey();
+
+                return;
+            }
+
+            Console.WriteLine("\nDownloading...\n");
+
+            DownloadCourse(courseData);
+
+            Console.WriteLine("Completed.\n");
         }
 
         private static void Login(string username, string password)
         {
-            Executor.ExecutePost(_config.LoginUrl, new Dictionary<string, string>()
+            Executor.ExecutePost(_config.LoginUrl, new Dictionary<string, string>
             {
                 {"Username", username},
                 {"Password", password},
             });
         }
 
-        private static void DownloadCourse(string courseId)
+        private static void DownloadCourse(string courseData)
         {
-            var payload = Executor.ExecutePost(_config.PayloadUrl, new { courseId = courseId });
-
-            var modules = JObject.Parse(payload)["modules"].Children();
+            var modules = JObject.Parse(courseData)["modules"].Children();
 
             foreach (var module in modules)
             {
@@ -63,7 +91,7 @@ namespace PluralsightParser
                     int moduleIndex;
                     int.TryParse(clip["moduleIndex"].ToString(), out moduleIndex);
 
-                    DownloadClip(url, ++moduleIndex, module["title"].ToString(), clip["title"].ToString().CleanInvalidCharacters() + ".mp4");
+                    DownloadClip(url, ++moduleIndex, module["title"].GetValidString(), clip["title"].GetValidString() + ".mp4");
 
                     // Just to avoid too many requests issue
                     Thread.Sleep(1000);
@@ -87,6 +115,8 @@ namespace PluralsightParser
                 return;
             }
 
+            Console.WriteLine(filePath);
+
             using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
             {
                 var request = (HttpWebRequest)WebRequest.Create(url);
@@ -99,6 +129,11 @@ namespace PluralsightParser
                     }
                 }
             }
+        }
+
+        private static string ExtractCourseId(string courseUrl)
+        {
+            return courseUrl.Split('/').Last();
         }
     }
 }

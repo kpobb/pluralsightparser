@@ -47,9 +47,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\JsonConfigurationReader.cs" />
+    <Compile Include="Components\JsonConfigurationBinder.cs" />
     <Compile Include="Configuration\PluralsightConfiguration.cs" />
-    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Extensions\JTokenExensions.cs" />
     <Compile Include="HttpRequestExecutor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

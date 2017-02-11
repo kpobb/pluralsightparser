@@ -1,17 +1,19 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace PluralsightParser.Extensions
 {
-    public static class StringExtensions
+    public static class JTokenExensions
     {
-        public static string CleanInvalidCharacters(this string fileName)
+        public static string GetValidString(this JToken token)
         {
             var builder = new StringBuilder();
             var invalid = Path.GetInvalidFileNameChars();
 
-            foreach (var symbol in fileName)
+            foreach (var symbol in token.ToString())
             {
                 if (!invalid.Contains(symbol))
                 {
