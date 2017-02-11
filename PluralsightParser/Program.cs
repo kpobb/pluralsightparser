@@ -76,7 +76,7 @@ namespace PluralsightParser
 
             DownloadCourse(courseData);
 
-            Console.WriteLine("\nCompleted.\n");
+            Console.WriteLine("\nDownload has been completed.\n");
             Console.ReadKey();
         }
 
